@@ -20,12 +20,9 @@ rl.on('line', (input) => {
   });
 });
 
-process.on('SIGINT', () => {
-  sayGoodbye();
-});
+rl.on('SIGINT', sayGoodbye);
 
 function sayGoodbye() {
   console.log('\nGoodbye! 👋');
   rl.close();
-  process.exit(0);
 }
