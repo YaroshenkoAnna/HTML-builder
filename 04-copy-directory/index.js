@@ -10,7 +10,6 @@ async function copyDir(src, dest) {
     const files = await readdir(srcPath, {
       withFileTypes: true,
     });
-
     for (const file of files) {
       if (file.isFile()) {
         const fileSrcPath = join(srcPath, file.name);
