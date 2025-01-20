@@ -18,9 +18,11 @@ const { createReadStream, createWriteStream } = require('fs');
     await rm(destCopyPath, { recursive: true, force: true });
     await mkdir(destCopyPath, { recursive: true });
 
-    compile('styles', destPath);
-    copy(srcCopyPath, destCopyPath);
-    replace('components', 'template.html', destPath);
+    await Promise.all([
+      copy(srcCopyPath, destCopyPath),
+      compile('styles', destPath),
+      replace('components', 'template.html', destPath),
+    ]);
   } catch (err) {
     console.error(err);
   }
@@ -28,18 +30,19 @@ const { createReadStream, createWriteStream } = require('fs');
 
 async function copy(src, dest) {
   const elements = await readdir(src, { withFileTypes: true });
+  await Promise.all(
+    elements.map(async (element) => {
+      const srcPath = join(src, element.name);
+      const destPath = join(dest, element.name);
 
-  for (const element of elements) {
-    const srcPath = join(src, element.name);
-    const destPath = join(dest, element.name);
-
-    if (element.isFile()) {
-      await copyFile(srcPath, destPath);
-    } else if (element.isDirectory()) {
-      await mkdir(destPath, { recursive: true });
-      await copy(srcPath, destPath);
-    }
-  }
+      if (element.isFile()) {
+        await copyFile(srcPath, destPath);
+      } else if (element.isDirectory()) {
+        await mkdir(destPath, { recursive: true });
+        await copy(srcPath, destPath);
+      }
+    }),
+  );
 }
 
 async function compile(srcDir, destDir) {
